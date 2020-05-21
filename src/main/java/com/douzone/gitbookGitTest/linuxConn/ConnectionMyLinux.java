@@ -15,6 +15,8 @@ public class ConnectionMyLinux {
 	private final static String user = "gitbook";
 	private final static String password = "gitbook";
 	private final static String charset = "utf-8";
+	private final static String dir = "/var/www/git/";
+	
 
 	// 사용자 추가 bare 저장소 생성
 	public static String userAdd(String userName) {
@@ -41,7 +43,7 @@ public class ConnectionMyLinux {
 	public static String addRepo(String userName, String repoName) {
 		try {
 			SSHExecutor.just(host, port, user, password, charset,
-					"cd /var/www/git/" + userName + " && sudo git-create-repo " + userName + " " + repoName);
+					"cd " + dir + userName + " && sudo git-create-repo " + userName + " " + repoName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -54,7 +56,7 @@ public class ConnectionMyLinux {
 		String result = null;
 		try {
 			result = SSHExecutor.just(host, port, user, password, charset,
-					"cd /var/www/git/" + userName + "/" + repoName + " && git ls-tree master");
+					"cd " + dir + userName + "/" + repoName + " && git ls-tree master");
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -68,7 +70,7 @@ public class ConnectionMyLinux {
 		HashMap<Integer, String> map = new HashMap<Integer, String>();
 
 		try {
-			String result = SSHExecutor.just(host, port, user, password, charset, "cd /var/www/git/" + userName + "/"
+			String result = SSHExecutor.just(host, port, user, password, charset, "cd " + dir + userName + "/"
 					+ repoName + " && git log -1 --pretty=format:\"%ar|||%s\" -- " + fileName);
 
 			map.put(i, fileName + "|||" + result);
@@ -97,7 +99,7 @@ public class ConnectionMyLinux {
 	
 	// 사용자 명의 폴더가 있는지 확인하기
 	public static Boolean checkUser(String userName) {
-		return ConnectionMyLinux.getResult("ls /var/www/git/" + userName).contains("ls: cannot access") == false;
+		return ConnectionMyLinux.getResult("ls " + dir + userName).contains("ls: cannot access") == false;
 	}
 
 	/*
@@ -106,7 +108,7 @@ public class ConnectionMyLinux {
 	 */
 	public static List<String> getRepositoryList(String userName) {
 		List<String> list = new ArrayList<>();
-		list.addAll(Arrays.asList(ConnectionMyLinux.getResult("ls /var/www/git/" + userName).split("\\s+")));
+		list.addAll(Arrays.asList(ConnectionMyLinux.getResult("ls " + dir + userName).split("\\s+")));
 
 		return list;
 	}
@@ -114,7 +116,7 @@ public class ConnectionMyLinux {
 	// 사용자 폴더 & 깃 레포지토리 폴더 여부 확인하기 (input 에서 레포지토리 명 뒤에 ".git" 붙이지 않는다)
 	// ex) checkUserAndRepo("user03", "test09") <-- .../user03/test09.git/ 여부 확인
 	public static Boolean checkUserAndRepo(String userName, String repoName) {
-		return ConnectionMyLinux.getResult("ls /var/www/git/" + userName + "/" + repoName + ".git")
+		return ConnectionMyLinux.getResult("ls "+ dir + userName + "/" + repoName + ".git")
 				.contains("ls: cannot access") == false;
 	}
 
@@ -133,7 +135,7 @@ public class ConnectionMyLinux {
 		// contents 에다가 넣을 내용들을 가져온다.
 		// [주의] path 끝에 "/" 을 넣는다 !!
 		String[] fileList = ConnectionMyLinux.getResult(
-				"cd /var/www/git/" + userName + "/" + repoName + ".git && git ls-tree --full-tree --name-status master")
+				"cd " + dir + userName + "/" + repoName + ".git && git ls-tree --full-tree --name-status master")
 				.split("\n");
 
 		// 정석아 부탁한다 ㅜ
@@ -177,7 +179,7 @@ public class ConnectionMyLinux {
 		// infoLine[2] : 해시코드
 		// infoLine[3] : 파일 or 폴더 (경로 포함, 빈칸 있으면 잘릴 수도 있음...어차피 안쓰임)
 		String infoLine = ConnectionMyLinux.getResult(
-				"cd /var/www/git/" + userName + "/" + repoName + ".git && git ls-tree --full-tree master " + pathName);
+				"cd " + dir + userName + "/" + repoName + ".git && git ls-tree --full-tree master " + pathName);
 
 		// 2. 조회되지 않은 경우(== 없다는 의미임) --> null을 보낸다
 		if (infoLine == null || "".equals(infoLine)) {
@@ -191,7 +193,7 @@ public class ConnectionMyLinux {
 		if ("blob".equals(info[1])) {
 			result.put("type", "file");
 			result.put("contents", ConnectionMyLinux
-					.getResult("cd /var/www/git/" + userName + "/" + repoName + ".git && git cat-file -p " + info[2]));
+					.getResult("cd " + dir + userName + "/" + repoName + ".git && git cat-file -p " + info[2]));
 		}
 		// 3-2. 폴더(tree)인 경우
 		else if ("tree".equals(info[1])) {
@@ -200,7 +202,7 @@ public class ConnectionMyLinux {
 
 			// contents 에다가 넣을 내용들을 가져온다.
 			// [주의] path 끝에 "/" 을 넣는다 !!
-			String[] fileList = ConnectionMyLinux.getResult("cd /var/www/git/" + userName + "/" + repoName
+			String[] fileList = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
 					+ ".git && git ls-tree --full-tree --name-status master " + pathName + "/").split("\n");
 
 			// 정석아 부탁한다 ㅜ
