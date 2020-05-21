@@ -21,29 +21,18 @@ public class ConnectionMyLinux {
 	// 사용자 추가 bare 저장소 생성
 	public static String userAdd(String userName) {
 		try {
-			SSHExecutor.just(host, port, user, password, charset, "sudo mkdir /var/www/git/" + userName);
+			SSHExecutor.just(host, port, user, password, charset, "sudo mkdir " + dir + userName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return userName;
 	}
-	/*
-	 * // 유저의 repository 출력 public static String repoList(String userName, String
-	 * repoName) { String viewRepo = null;
-	 * 
-	 * try { viewRepo = SSHExecutor.just(host, port, user, password, charset,
-	 * "cd /var/www/git/" + userName + "/" + repoName +
-	 * ".git && git ls-tree --full-tree master"); } catch (IOException e) {
-	 * e.printStackTrace(); } System.out.println(viewRepo);
-	 * 
-	 * return viewRepo; }
-	 */
 
 	// 유저의 repository 생성
 	public static String addRepo(String userName, String repoName) {
 		try {
 			SSHExecutor.just(host, port, user, password, charset,
-					"cd " + dir + userName + " && sudo git-create-repo " + userName + " " + repoName);
+					"cd " + dir + userName + " && sudo git-create-repo " + userName + " " + repoName + ".git");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -56,7 +45,7 @@ public class ConnectionMyLinux {
 		String result = null;
 		try {
 			result = SSHExecutor.just(host, port, user, password, charset,
-					"cd " + dir + userName + "/" + repoName + " && git ls-tree master");
+					"cd " + dir + userName + "/" + repoName + ".git && git ls-tree master");
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -71,7 +60,7 @@ public class ConnectionMyLinux {
 
 		try {
 			String result = SSHExecutor.just(host, port, user, password, charset, "cd " + dir + userName + "/"
-					+ repoName + " && git log -1 --pretty=format:\"%ar|||%s\" -- " + fileName);
+					+ repoName + ".git && git log -1 --pretty=format:\"%ar|||%s\" -- " + fileName);
 
 			map.put(i, fileName + "|||" + result);
 
@@ -113,6 +102,8 @@ public class ConnectionMyLinux {
 		return list;
 	}
 
+	
+	//커밋필요!
 	// 사용자 폴더 & 깃 레포지토리 폴더 여부 확인하기 (input 에서 레포지토리 명 뒤에 ".git" 붙이지 않는다)
 	// ex) checkUserAndRepo("user03", "test09") <-- .../user03/test09.git/ 여부 확인
 	public static Boolean checkUserAndRepo(String userName, String repoName) {
@@ -146,15 +137,18 @@ public class ConnectionMyLinux {
 			// 1. 경로 path를 넣기
 			buffer.put("path", fileList[i]);
 
+			
+			String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/"
+					+ repoName + ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
 			// 2. 경로 path에 해당되는 commit 메시지를 넣기
 			// 해당 path의 commit 메시지 가져오기
 
-			buffer.put("commit", null);
+			buffer.put("commit", dateAndCommit[1]);
 
 			// 3. 경로 path의 일자 정보 넣기
 			// 해당 path의 date 가져오기
 
-			buffer.put("date", null);
+			buffer.put("date", dateAndCommit[0]);
 
 			// 4. 마지막으로 contents 에다가 {"i" : buffer 객체} 형태로 넣는다.
 			contents.put(String.valueOf(i), buffer);
@@ -204,7 +198,11 @@ public class ConnectionMyLinux {
 			// [주의] path 끝에 "/" 을 넣는다 !!
 			String[] fileList = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
 					+ ".git && git ls-tree --full-tree --name-status master " + pathName + "/").split("\n");
-
+			
+			System.out.println("fileList 크기 : " + fileList.length);
+			
+			
+			
 			// 정석아 부탁한다 ㅜ
 			for (int i = 0; i < fileList.length; i++) {
 				// 임시 버퍼 Map을 정의
@@ -213,15 +211,17 @@ public class ConnectionMyLinux {
 				// 1. 경로 path를 넣기
 				buffer.put("path", fileList[i]);
 
+				String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/"
+						+ repoName + ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
 				// 2. 경로 path에 해당되는 commit 메시지를 넣기
 				// 해당 path의 commit 메시지 가져오기
 
-				buffer.put("commit", null);
+				buffer.put("commit", dateAndCommit[1]);
 
 				// 3. 경로 path의 일자 정보 넣기
 				// 해당 path의 date 가져오기
 
-				buffer.put("date", null);
+				buffer.put("date", dateAndCommit[0]);
 
 				// 4. 마지막으로 contents 에다가 {"i" : buffer 객체} 형태로 넣는다.
 				contents.put(String.valueOf(i), buffer);

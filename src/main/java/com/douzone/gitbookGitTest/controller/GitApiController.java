@@ -42,6 +42,8 @@ public class GitApiController {
 		return JsonResult.success(ConnectionMyLinux.getRepositoryList(userName));
 	}
 
+	
+	//커밋필요!
 	@ResponseBody
 	@GetMapping("/view/{userName}/{repoName}")
 	public JsonResult showRootOnRepo(@PathVariable("userName") String userName,
@@ -52,9 +54,15 @@ public class GitApiController {
 		}
 
 		return JsonResult.success(ConnectionMyLinux.getFileListOnTop(userName, repoName));
-
 	}
 
+	
+	
+	
+	
+	
+	
+	//커밋필요!
 	@ResponseBody
 	@GetMapping("/view/{userName}/{repoName}/**")
 	public JsonResult showInternalOnRepo(@PathVariable("userName") String userName,
@@ -62,39 +70,14 @@ public class GitApiController {
 		String fullPath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 		
 		String pathName = fullPath.substring(fullPath.indexOf(repoName) + repoName.length() + 1);
-//		System.out.println("userName : " + userName);
-//		System.out.println("repoName : " + repoName);
-//		System.out.println("pathName : " + pathName);
-		
+		System.out.println(pathName + "!");
 		Map<String, Object> data = ConnectionMyLinux.getView(userName, repoName, pathName);
 		if (data == null) {
 			return JsonResult.fail("cannot retrieve internal contents");
 		}
-
 		return JsonResult.success(data);
 	}
 
-	// 커밋기록 : 파일 + 기록
-	@ResponseBody
-	@GetMapping("/커밋/{userName}/{repoName}")
-	public JsonResult commitfiles(@PathVariable("userName") String userName,
-			@PathVariable("repoName") String repoName) {
 
-		String lsTreeMaster = ConnectionMyLinux.commitfiles(userName, repoName); // ls-tree master
-		String[] fileName = null;
-
-		HashMap<Integer, Object> commitMap = new HashMap<Integer, Object>();
-
-		String[] commitContents = lsTreeMaster.split("\n");
-
-		for (int i = 0; i < commitContents.length; i++) {
-			fileName = commitContents[i].split("\t");
-
-			commitMap.put(i, ConnectionMyLinux.commitContents(userName, repoName, fileName[1], i));// log -1 -- FileName
-			System.out.println(commitMap.get(i));
-		}
-
-		return JsonResult.success(commitMap);
-	}
 
 }
