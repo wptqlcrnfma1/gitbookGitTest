@@ -199,10 +199,6 @@ public class ConnectionMyLinux {
 			String[] fileList = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
 					+ ".git && git ls-tree --full-tree --name-status master " + pathName + "/").split("\n");
 			
-			System.out.println("fileList 크기 : " + fileList.length);
-			
-			
-			
 			// 정석아 부탁한다 ㅜ
 			for (int i = 0; i < fileList.length; i++) {
 				// 임시 버퍼 Map을 정의

@@ -1,6 +1,5 @@
 package com.douzone.gitbookGitTest.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,13 +55,6 @@ public class GitApiController {
 		return JsonResult.success(ConnectionMyLinux.getFileListOnTop(userName, repoName));
 	}
 
-	
-	
-	
-	
-	
-	
-	//커밋필요!
 	@ResponseBody
 	@GetMapping("/view/{userName}/{repoName}/**")
 	public JsonResult showInternalOnRepo(@PathVariable("userName") String userName,
@@ -70,7 +62,11 @@ public class GitApiController {
 		String fullPath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
 		
 		String pathName = fullPath.substring(fullPath.indexOf(repoName) + repoName.length() + 1);
-		System.out.println(pathName + "!");
+		
+		if("/".equals(pathName.substring(pathName.length()-1, pathName.length()))) {
+			pathName = pathName.substring(0,pathName.length()-1);
+		}
+
 		Map<String, Object> data = ConnectionMyLinux.getView(userName, repoName, pathName);
 		if (data == null) {
 			return JsonResult.fail("cannot retrieve internal contents");
