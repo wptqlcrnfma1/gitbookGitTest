@@ -41,15 +41,20 @@ public class GitApiController {
 		return JsonResult.success(ConnectionMyLinux.getRepositoryList(userName));
 	}
 
-	
-	//커밋필요!
+	// 커밋필요!
 	@ResponseBody
 	@GetMapping("/view/{userName}/{repoName}")
 	public JsonResult showRootOnRepo(@PathVariable("userName") String userName,
 			@PathVariable("repoName") String repoName) {
 
+		// 잘못된 URL 입력
 		if (ConnectionMyLinux.checkUserAndRepo(userName, repoName) == false) {
 			return JsonResult.fail("repo not found");
+		}
+
+		// 최초 만든 repo일 경우
+		if (ConnectionMyLinux.checkNewRepo(userName, repoName).contains("fatal: Not a valid object name master")) {
+			return JsonResult.fail("newRepo");
 		}
 
 		return JsonResult.success(ConnectionMyLinux.getFileListOnTop(userName, repoName));
@@ -60,11 +65,11 @@ public class GitApiController {
 	public JsonResult showInternalOnRepo(@PathVariable("userName") String userName,
 			@PathVariable("repoName") String repoName, HttpServletRequest request) {
 		String fullPath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-		
+
 		String pathName = fullPath.substring(fullPath.indexOf(repoName) + repoName.length() + 1);
-		
-		if("/".equals(pathName.substring(pathName.length()-1, pathName.length()))) {
-			pathName = pathName.substring(0,pathName.length()-1);
+
+		if ("/".equals(pathName.substring(pathName.length() - 1, pathName.length()))) {
+			pathName = pathName.substring(0, pathName.length() - 1);
 		}
 
 		Map<String, Object> data = ConnectionMyLinux.getView(userName, repoName, pathName);
@@ -73,7 +78,5 @@ public class GitApiController {
 		}
 		return JsonResult.success(data);
 	}
-
-
 
 }

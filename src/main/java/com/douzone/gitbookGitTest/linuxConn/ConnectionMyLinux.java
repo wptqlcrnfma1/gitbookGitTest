@@ -16,7 +16,6 @@ public class ConnectionMyLinux {
 	private final static String password = "gitbook";
 	private final static String charset = "utf-8";
 	private final static String dir = "/var/www/git/";
-	
 
 	// 사용자 추가 bare 저장소 생성
 	public static String userAdd(String userName) {
@@ -32,43 +31,12 @@ public class ConnectionMyLinux {
 	public static String addRepo(String userName, String repoName) {
 		try {
 			SSHExecutor.just(host, port, user, password, charset,
-					"cd " + dir + userName + " && sudo git-create-repo " + userName + " " + repoName + ".git");
+					"cd " + dir + userName + " && sudo git-create-repo " + userName + " " + repoName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 		return "success";
-	}
-
-	// commit 기록 = 파일
-	public static String commitfiles(String userName, String repoName) {
-		String result = null;
-		try {
-			result = SSHExecutor.just(host, port, user, password, charset,
-					"cd " + dir + userName + "/" + repoName + ".git && git ls-tree master");
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return result;
-	}
-
-	// commit 기록 = 내용
-
-	public static HashMap<Integer, String> commitContents(String userName, String repoName, String fileName, int i) {
-		HashMap<Integer, String> map = new HashMap<Integer, String>();
-
-		try {
-			String result = SSHExecutor.just(host, port, user, password, charset, "cd " + dir + userName + "/"
-					+ repoName + ".git && git log -1 --pretty=format:\"%ar|||%s\" -- " + fileName);
-
-			map.put(i, fileName + "|||" + result);
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return map;
 	}
 
 	public static String getResult(String command) {
@@ -80,12 +48,6 @@ public class ConnectionMyLinux {
 		}
 	}
 
-	
-	
-	////////////////////////////////////////////////////////////////////////////////////
-
-	
-	
 	// 사용자 명의 폴더가 있는지 확인하기
 	public static Boolean checkUser(String userName) {
 		return ConnectionMyLinux.getResult("ls " + dir + userName).contains("ls: cannot access") == false;
@@ -102,13 +64,23 @@ public class ConnectionMyLinux {
 		return list;
 	}
 
-	
-	//커밋필요!
 	// 사용자 폴더 & 깃 레포지토리 폴더 여부 확인하기 (input 에서 레포지토리 명 뒤에 ".git" 붙이지 않는다)
 	// ex) checkUserAndRepo("user03", "test09") <-- .../user03/test09.git/ 여부 확인
 	public static Boolean checkUserAndRepo(String userName, String repoName) {
-		return ConnectionMyLinux.getResult("ls "+ dir + userName + "/" + repoName + ".git")
+		return ConnectionMyLinux.getResult("ls " + dir + userName + "/" + repoName + ".git")
 				.contains("ls: cannot access") == false;
+	}
+	
+	public static String checkNewRepo(String userName, String repoName) {
+		String result = null;
+		try {
+			result = SSHExecutor.just(host, port, user, password, charset,
+					"cd " + dir + userName + "/" + repoName + ".git && git ls-tree --full-tree --name-status master");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 
 	/*
@@ -137,9 +109,8 @@ public class ConnectionMyLinux {
 			// 1. 경로 path를 넣기
 			buffer.put("path", fileList[i]);
 
-			
-			String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/"
-					+ repoName + ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
+			String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
+					+ ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
 			// 2. 경로 path에 해당되는 commit 메시지를 넣기
 			// 해당 path의 commit 메시지 가져오기
 
@@ -198,7 +169,7 @@ public class ConnectionMyLinux {
 			// [주의] path 끝에 "/" 을 넣는다 !!
 			String[] fileList = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
 					+ ".git && git ls-tree --full-tree --name-status master " + pathName + "/").split("\n");
-			
+
 			// 정석아 부탁한다 ㅜ
 			for (int i = 0; i < fileList.length; i++) {
 				// 임시 버퍼 Map을 정의
@@ -207,8 +178,8 @@ public class ConnectionMyLinux {
 				// 1. 경로 path를 넣기
 				buffer.put("path", fileList[i]);
 
-				String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/"
-						+ repoName + ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
+				String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
+						+ ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
 				// 2. 경로 path에 해당되는 commit 메시지를 넣기
 				// 해당 path의 commit 메시지 가져오기
 
