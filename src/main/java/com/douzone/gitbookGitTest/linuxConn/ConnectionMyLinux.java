@@ -15,7 +15,7 @@ public class ConnectionMyLinux {
 	private final static String user = "gitbook";
 	private final static String password = "gitbook";
 	private final static String charset = "utf-8";
-	private final static String dir = "/var/www/git/";
+	private final static String dir = "/var/www/git/gitbook/";
 
 	// 사용자 추가 bare 저장소 생성
 	public static String userAdd(String userName) {
@@ -70,7 +70,7 @@ public class ConnectionMyLinux {
 		return ConnectionMyLinux.getResult("ls " + dir + userName + "/" + repoName + ".git")
 				.contains("ls: cannot access") == false;
 	}
-	
+
 	public static String checkNewRepo(String userName, String repoName) {
 		String result = null;
 		try {
@@ -80,6 +80,7 @@ public class ConnectionMyLinux {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		return result;
 	}
 
