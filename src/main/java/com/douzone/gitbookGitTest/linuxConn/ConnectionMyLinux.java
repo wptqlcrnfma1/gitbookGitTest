@@ -80,7 +80,7 @@ public class ConnectionMyLinux {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result;
 	}
 
@@ -97,30 +97,26 @@ public class ConnectionMyLinux {
 		Map<String, Object> contents = new HashMap<>();
 
 		// contents 에다가 넣을 내용들을 가져온다.
-		// [주의] path 끝에 "/" 을 넣는다 !!
-		String[] fileList = ConnectionMyLinux.getResult(
-				"cd " + dir + userName + "/" + repoName + ".git && git ls-tree --full-tree --name-status master")
-				.split("\n");
+		// contents 에다가 넣을 내용들을 가져온다.
+		String[] fileList = ConnectionMyLinux.getResult("sudo python3 /root/gitserver/script/git-view-list.py " + userName + " " + repoName + " master").split("\n");
 
-		// 정석아 부탁한다 ㅜ
 		for (int i = 0; i < fileList.length; i++) {
 			// 임시 버퍼 Map을 정의
 			Map<String, Object> buffer = new HashMap<>();
+			String[] splited = fileList[i].split("\t");
 
 			// 1. 경로 path를 넣기
-			buffer.put("path", fileList[i]);
+			buffer.put("path", splited[0]);
 
-			String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
-					+ ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
 			// 2. 경로 path에 해당되는 commit 메시지를 넣기
 			// 해당 path의 commit 메시지 가져오기
 
-			buffer.put("commit", dateAndCommit[1]);
+			buffer.put("commit", splited[1]);
 
 			// 3. 경로 path의 일자 정보 넣기
 			// 해당 path의 date 가져오기
 
-			buffer.put("date", dateAndCommit[0]);
+			buffer.put("date", splited[2]);
 
 			// 4. 마지막으로 contents 에다가 {"i" : buffer 객체} 형태로 넣는다.
 			contents.put(String.valueOf(i), buffer);
@@ -167,29 +163,27 @@ public class ConnectionMyLinux {
 			Map<String, Object> contents = new HashMap<>();
 
 			// contents 에다가 넣을 내용들을 가져온다.
-			// [주의] path 끝에 "/" 을 넣는다 !!
-			String[] fileList = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
-					+ ".git && git ls-tree --full-tree --name-status master " + pathName + "/").split("\n");
-
-			// 정석아 부탁한다 ㅜ
+			String[] fileList = ConnectionMyLinux.getResult("sudo python3 /root/gitserver/script/git-view-list.py " + userName + " " + repoName + " master " + pathName).split("\n");
+			
+			System.out.println("!!!!! : " + fileList[0]);
+			
 			for (int i = 0; i < fileList.length; i++) {
 				// 임시 버퍼 Map을 정의
 				Map<String, Object> buffer = new HashMap<>();
+				String[] splited = fileList[i].split("\t");
 
 				// 1. 경로 path를 넣기
-				buffer.put("path", fileList[i]);
+				buffer.put("path", splited[0]);
 
-				String[] dateAndCommit = ConnectionMyLinux.getResult("cd " + dir + userName + "/" + repoName
-						+ ".git && git log -1 --pretty=format:\"%ar\t%s\" -- " + fileList[i]).split("\t");
 				// 2. 경로 path에 해당되는 commit 메시지를 넣기
 				// 해당 path의 commit 메시지 가져오기
 
-				buffer.put("commit", dateAndCommit[1]);
+				buffer.put("commit", splited[1]);
 
 				// 3. 경로 path의 일자 정보 넣기
 				// 해당 path의 date 가져오기
 
-				buffer.put("date", dateAndCommit[0]);
+				buffer.put("date", splited[2]);
 
 				// 4. 마지막으로 contents 에다가 {"i" : buffer 객체} 형태로 넣는다.
 				contents.put(String.valueOf(i), buffer);
